@@ -3,6 +3,7 @@ using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Audio;
+using StardewValley.Locations;
 using StardewValley.Quests;
 using System;
 
@@ -25,14 +26,33 @@ namespace PolyamorySweetKiss
         {
             NPC fubar = new NPC();
             fubar = __instance;
+            //Stack<Dialogue> currentDialogue = new Stack<Dialogue>();
+            Friendship friends;
+            int heartLevel = (Game1.player.friendshipData.TryGetValue(__instance.Name, out friends) ? (friends.Points / 250) : 0);
 
             try
             {
                 if (!Config.EnableMod || __instance.IsInvisible || __instance.isSleeping.Value || !who.canMove || who.NotifyQuests((Quest quest) => quest.OnNpcSocialized(fubar)) || (who.pantsItem.Value?.ParentSheetIndex == 15 && (__instance.Name.Equals("Lewis") || __instance.Name.Equals("Marnie"))) || (__instance.Name.Equals("Krobus") && who.hasQuest("28")) || !who.IsLocalPlayer)
                     return true;
 
+                if(!Game1.player.currentLocation.Equals("FarmHouse") )
+                {
+                    if (who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].IsMarried())
+                    {
+                            Dialogue d = __instance.tryToRetrieveDialogue(Game1.currentSeason + "_", heartLevel);
 
+                            if (d != null)
+                            {
+                                __instance.CurrentDialogue.Push(d);
+                                
+                            }
+                            else if(d == null)
+                        {
+                            __instance.CurrentDialogue.Push(new Dialogue(__instance, "Strings\\StringsFromCSFiles:WifeGreeting"));
+                        }
 
+                    }
+                }
 
                 if (who.friendshipData.ContainsKey(__instance.Name) && who.friendshipData[__instance.Name].Points >= 3125 && who.mailReceived.Add("CF_Spouse"))
                 {
